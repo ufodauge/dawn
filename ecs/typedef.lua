@@ -1,0 +1,1 @@
+---@alias ECS.Component table|any
