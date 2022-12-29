@@ -6,17 +6,21 @@ local lp = love.physics
 
 -- require
 --------------------------------------------------------------
-local ECS        = require('lib.tiny-ecs')
-local util       = require('lib.util')
-local quadout    = require('lib.easing.quad').o
-local Controller = require('class.controller'):getInstance()
-local Canvas     = require('class.canvas')
-local Camera     = require('class.camera'):getInstance()
+local ECS               = require('lib.tiny-ecs')
+local util              = require('lib.util')
+local quadout           = require('lib.easing.quad').o
+local Controller        = require('class.controller'):getInstance()
+local Canvas            = require('class.canvas')
+local Camera            = require('class.camera'):getInstance()
+local flux              = require('lib.flux')
+local coil              = require('lib.coil')
+local Signal            = require('lib.signal')
+local EVENT_NAME_GOALED = require('const.event_name').GOALED
 
 
 -- local
 --------------------------------------------------------------
-local CATEGORY = require('data.box2d_category')
+local CATEGORY = require('const.box2d_category')
 
 local SecondOrderDynamics = require('lib.sos').SecondOrderDynamics
 local Vector              = require('lib.sos').Vector
@@ -41,15 +45,29 @@ local System = ECS.processingSystem()
 
 System.filter = ECS.requireAll('player', 'player_ui')
 
----@param entity {blob: Blob, transform: ECS.TransformComponent, player: ECS.PlayerComponent, player_ui: ECS.PlayerUIComponent}
-function System:onAdd(entity)
-    entity.blob:setCategory(CATEGORY.PLAYER)
+---@param e {blob: Blob, transform: ECS.TransformComponent, player: ECS.PlayerComponent, player_ui: ECS.PlayerUIComponent, color: ECS.ColorComponent}
+function System:onAdd(e)
+    e.player.controllable = false
+    e.color.a = 0
+    coil.add(function()
+        coil.wait(2)
+        e.player.controllable = true
+        flux.to(e.color, 1, {
+            a = 1
+        })
+        self._goaled = function(time)
+            e.player.controllable = false
+        end
+        Signal.subscribe(EVENT_NAME_GOALED, self._goaled)
+    end)
 
-    entity.player_ui.tracker = SecondOrderDynamics.new(
+    e.blob:setCategory(CATEGORY.PLAYER)
+
+    e.player_ui.tracker = SecondOrderDynamics.new(
         SOC_F, SOC_Z, SOC_R,
-        Vector(entity.transform.x, entity.transform.y))
+        Vector(e.transform.x, e.transform.y))
 
-    entity.player_ui.x, entity.player_ui.y = entity.transform.x, entity.transform.y
+    e.player_ui.x, e.player_ui.y = e.transform.x, e.transform.y
 end
 
 
@@ -60,14 +78,14 @@ function System:preProcess(dt)
 end
 
 
----@param entity {blob: Blob, transform: ECS.TransformComponent, player: ECS.PlayerComponent, player_ui: ECS.PlayerUIComponent, color: ECS.ColorComponent}
+---@param e {blob: Blob, transform: ECS.TransformComponent, player: ECS.PlayerComponent, player_ui: ECS.PlayerUIComponent, color: ECS.ColorComponent}
 ---@param dt number
-function System:process(entity, dt)
+function System:process(e, dt)
     -- player ui
     --------------------------------------------------------------
-    local vec = entity.player_ui.tracker:update(
+    local vec = e.player_ui.tracker:update(
         dt,
-        Vector(entity.blob.kernel_body:getPosition()))
+        Vector(e.blob.kernel_body:getPosition()))
 
     -- track player
     --------------------------------------------------------------
@@ -75,7 +93,7 @@ function System:process(entity, dt)
 
     lg.setCanvas(canvas)
     lg.push()
-    do
+    if e.player.controllable then
         lg.translate(vec.x, vec.y)
         local default_line_width = lg.getLineWidth()
 
@@ -84,14 +102,14 @@ function System:process(entity, dt)
         -- strength ui
         --------------------------------------------------------------
         lg.setColor(
-            entity.color.r,
-            entity.color.g,
-            entity.color.b,
-            entity.color.a)
+            e.color.r,
+            e.color.g,
+            e.color.b,
+            e.color.a)
         lg.circle('fill',
             POP_STRENGTH_UI_X_REL,
             POP_STRENGTH_UI_Y_REL,
-            POP_STRENGTH_UI_RADIUS * entity.player.pop_strength_rate)
+            POP_STRENGTH_UI_RADIUS * e.player.pop_strength_rate)
         lg.setColor(1, 1, 1, 1)
         lg.circle('line',
             POP_STRENGTH_UI_X_REL,
@@ -100,12 +118,12 @@ function System:process(entity, dt)
 
         -- angle ui
         --------------------------------------------------------------
-        lg.rotate(entity.player.pop_angle)
+        lg.rotate(e.player.pop_angle)
         lg.setColor(
-            entity.color.r,
-            entity.color.g,
-            entity.color.b,
-            entity.color.a)
+            e.color.r,
+            e.color.g,
+            e.color.b,
+            e.color.a)
         lg.polygon('fill', POP_ANGLE_UI_POINTS)
 
         lg.setLineWidth(default_line_width)
@@ -117,7 +135,7 @@ function System:process(entity, dt)
 
     -- player
     --------------------------------------------------------------
-    if not entity.player.controllable then
+    if not e.player.controllable then
         return
     end
 
@@ -128,17 +146,17 @@ function System:process(entity, dt)
         -- tilt angle
         --------------------------------------------------------------
         if Controller:down('tilt_left') then
-            entity.player.pop_angle = entity.player.pop_angle - math.pi / 128
+            e.player.pop_angle = e.player.pop_angle - math.pi / 128
         end
         if Controller:down('tilt_right') then
-            entity.player.pop_angle = entity.player.pop_angle + math.pi / 128
+            e.player.pop_angle = e.player.pop_angle + math.pi / 128
         end
 
     else
 
         -- direction angle
         --------------------------------------------------------------
-        entity.player.pop_angle = -math.atan2(axis_x, axis_y) + math.pi / 2
+        e.player.pop_angle = -math.atan2(axis_x, axis_y) + math.pi / 2
 
     end
 
@@ -146,24 +164,24 @@ function System:process(entity, dt)
     -- jump controlls
     --------------------------------------------------------------
     if Controller:released('action') then
-        entity.blob.kernel_body:applyLinearImpulse(
-            entity.player.pop_strength * math.cos(entity.player.pop_angle) * entity.player.pop_strength_rate,
-            entity.player.pop_strength * math.sin(entity.player.pop_angle) * entity.player.pop_strength_rate)
+        e.blob.kernel_body:applyLinearImpulse(
+            e.player.pop_strength * math.cos(e.player.pop_angle) * e.player.pop_strength_rate,
+            e.player.pop_strength * math.sin(e.player.pop_angle) * e.player.pop_strength_rate)
     end
 
 
     if Controller:down('action') then
-        entity.player._time = (entity.player._time + dt) % 1
+        e.player.time = (e.player.time + dt) % 1
     else
-        entity.player._time = 0
+        e.player.time = 0
     end
-    entity.player.pop_strength_rate = quadout(entity.player._time)
+    e.player.pop_strength_rate = quadout(e.player.time)
 end
 
 
----@param entity {blob: Blob, transform: ECS.TransformComponent, player: ECS.PlayerComponent, player_ui: ECS.PlayerUIComponent}
-function System:onRemove(entity)
-
+---@param e {blob: Blob, transform: ECS.TransformComponent, player: ECS.PlayerComponent, player_ui: ECS.PlayerUIComponent}
+function System:onRemove(e)
+    Signal.unsubscribe(EVENT_NAME_GOALED, self._goaled)
 end
 
 

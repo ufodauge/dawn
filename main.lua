@@ -1,6 +1,5 @@
 love.lurker = require('lib.lurker')
 
-
 love.debug = require('lib.luidebug'):getInstance()
 --------------------------------------------------------------
 -- Debug
@@ -22,8 +21,8 @@ local la = love.audio
 --------------------------------------------------------------
 -- Global
 --------------------------------------------------------------
-love.lume    = require('lib.lume')
-love.assets  = require('lib.cargo').init {
+love.lume   = require('lib.lume')
+love.assets = require('lib.cargo').init {
     dir = 'assets',
     loaders = {
         wav = function(wav)
@@ -39,8 +38,7 @@ love.assets  = require('lib.cargo').init {
         end,
     }
 }
----@type table<string, boolean|number>
-love.statics = {}
+
 
 --------------------------------------------------------------
 -- requires
@@ -79,25 +77,17 @@ end
 
 function love.update(dt)
     xpcall(function()
-        --------------------------------------------------------------
         -- Try
         --------------------------------------------------------------
-
-        -- Scene Changes
-        --------------------------------------------------------------
-        if love.statics.toggle_scene then
-            love.statics.toggle_scene = false
-        end
-
         love.debug:update(dt)
 
-        Flux.update(dt)
-        Coil.update(dt)
         Controller:update()
 
         Roomy:emit('update', dt)
+
+        Flux.update(dt)
+        Coil.update(dt)
     end, function(msg)
-        --------------------------------------------------------------
         -- Catch
         --------------------------------------------------------------
 

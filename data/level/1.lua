@@ -3,7 +3,20 @@ local util = require('lib.util')
 local color_palette = util.parseJson('data/material_color.json')
 
 return {
-  systems = { 'debug_mode', 'rectangle', 'physics', 'blob', 'player', 'background' },
+  systems = {
+    'debug_mode',
+    'rectangle',
+    'block',
+    'ball',
+    'circle',
+    'blob',
+    'player',
+    'background',
+    'goal',
+    'light',
+    'animation',
+    'timer',
+  },
   entities = {
     {
       _name      = 'background',
@@ -34,8 +47,24 @@ return {
       transform = { x = 160, y = 450 },
       circle = { r = 26 },
       color = { hex2tbl(color_palette.pink['300']) },
-      player = {},
-      player_ui = {}
+    },
+    {
+      _name = 'goal',
+      transform = { x = 1000, y = 500 },
+      circle = { r = 10 },
+      light = { r = 50 },
+      color = { hex2tbl(color_palette.indigo['300']) },
+    },
+    {
+      _name = 'light',
+      transform = { x = -75, y = -100 },
+      circle = { r = 1200 },
+      color = { hex2tbl('#FFFFFF') },
+    },
+    {
+      _name = 'timer',
+      transform = { x = 1100, y = 30 },
+      color = { hex2tbl('#121212') },
     },
   }
 }

@@ -1,5 +1,3 @@
-local LuiDebug = require('lib.luidebug'):getInstance()
-
 ---@class Signal
 local Signal = {}
 
@@ -7,16 +5,13 @@ local channel = {}
 
 ---@param ch string
 ---@param ... any
-function Signal.send(ch, ...)
+function Signal.emit(ch, ...)
     local slice = {}
     for _, func in pairs(channel[ch] or {}) do
         table.insert(slice, func)
     end
     for _, func in pairs(slice) do
-        xpcall(func, function(msg)
-            LuiDebug:log(debug.traceback(msg))
-            print(debug.traceback(msg))
-        end, ...)
+        func(...)
     end
 end
 

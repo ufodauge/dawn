@@ -10,7 +10,8 @@ return function(args)
     return {
         pop_angle         = 0,
         pop_strength_rate = 0,
-        pop_strength      = args.pop_strength or 170,
+        pop_strength      = (args and args.pop_strength)
+            and args.pop_strength or 170,
         time              = 0,
         controllable      = true
     }

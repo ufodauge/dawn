@@ -553,6 +553,15 @@ end
 
 local lambda_cache = {}
 
+-- Takes a string lambda and returns a function. `str` should be a list of
+-- comma-separated parameters, followed by `->`, followed by the expression which
+-- will be evaluated and returned.
+-- ```lua
+-- local f = lume.lambda "x,y -> 2*x+y"
+-- f(10, 5) -- Returns 25
+-- ```
+---@param str string
+---@return function
 function lume.lambda(str)
   if not lambda_cache[str] then
     local args, body = str:match([[^([%w,_ ]-)%->(.-)$]])

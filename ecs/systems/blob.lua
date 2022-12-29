@@ -6,11 +6,13 @@ local lp = love.physics
 
 -- require
 --------------------------------------------------------------
-local ECS    = require('lib.tiny-ecs')
-local Canvas = require('class.canvas')
-local util   = require('lib.util')
-local World  = require('class.world_physics')
-local Blob   = require('lib.blob')
+local ECS     = require('lib.tiny-ecs')
+local util    = require('lib.util')
+local Blob    = require('lib.blob')
+local Canvas  = require('class.canvas')
+local World   = require('class.world_physics')
+local Lighter = require('class.world_light')
+local flux    = require('lib.flux')
 
 
 -- local
@@ -29,14 +31,38 @@ local System = ECS.processingSystem()
 
 System.filter = ECS.requireAll('transform', 'blob', 'color')
 
----@param entity {blob: Blob, circle: ECS.CircleComponent,transform: ECS.TransformComponent}
-function System:onAdd(entity)
-    entity.blob = Blob.new(
+---@param e {blob: Blob, circle: ECS.CircleComponent,transform: ECS.TransformComponent, shadow_circle: any, color: ECS.ColorComponent, radius: any}
+function System:onAdd(e)
+    e.blob = Blob.new(
         World:get(),
-        entity.transform.x,
-        entity.transform.y,
-        entity.circle.r - NODE_RADIUS,
+        e.transform.x,
+        e.transform.y,
+        e.circle.r - NODE_RADIUS,
         NODE_RADIUS)
+
+
+    -- shadow
+    --------------------------------------------------------------
+    e.shadow_circle.r = e.circle.r
+    e.shadow_circle.mul = 1.2
+
+    e.shadow_circle.body = Lighter:get():newCircle(
+        e.transform.x, e.transform.y,
+        e.shadow_circle.r * e.shadow_circle.mul)
+
+    local shadow_a = e.shadow_circle.a or 1
+    local a = e.color.a
+
+    e.shadow_circle.a = 0
+    e.color.a         = 0
+
+    flux.to(
+        e.shadow_circle, 1,
+        { a = shadow_a })
+
+    flux.to(
+        e.color, 1,
+        { a = a })
 end
 
 
@@ -50,31 +76,36 @@ function System:preProcess(dt)
 end
 
 
----@param entity {blob: Blob, color: ECS.ColorComponent, debug_mode: boolean}
+---@param e {blob: Blob, color: ECS.ColorComponent, debug_mode: boolean, shadow_circle: any, transform: ECS.TransformComponent}
 ---@param dt number
-function System:process(entity, dt)
-    entity.blob:update()
+function System:process(e, dt)
+    e.blob:update()
+
+    e.shadow_circle.body:setPosition(e.blob.kernel_body:getPosition())
+    e.shadow_circle.body:setAlpha(e.shadow_circle.a)
 
     lg.setCanvas(canvas_main)
     lg.setColor(
-        entity.color.r,
-        entity.color.g,
-        entity.color.b,
-        entity.color.a)
-    entity.blob:draw('fill')
+        e.color.r,
+        e.color.g,
+        e.color.b,
+        e.color.a)
+    e.blob:draw('fill')
 
-    if entity.debug_mode then
+    if e.debug_mode then
         lg.setCanvas(canvas_col_view)
-        entity.blob:drawDebug()
+        e.blob:drawDebug()
     end
 
     lg.setCanvas()
 end
 
 
----@param entity {blob: Blob}
-function System:onRemove(entity)
-    entity.blob:destroy()
+---@param e {blob: Blob, shadow_circle: any}
+function System:onRemove(e)
+    e.blob:destroy()
+
+    Lighter:get():remove(e.shadow_circle.body)
 end
 
 

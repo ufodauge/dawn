@@ -86,11 +86,13 @@ end
 ---@param t number
 ---@param w number
 ---@param h number
-function Canvas:draw(l, t, w, h)
+function Canvas:draw(l, t, w, h, option)
     lg.setColor(1, 1, 1, 1)
     for i = 1, #canvases do
-        local speed = canvases[i].track_speed
-        lg.draw(canvases[i].canvas, l * (-speed + 1), t * (-speed + 1))
+        if option and not love.lume.find(option.exclude, canvases[i].name) then
+            local speed = canvases[i].track_speed
+            lg.draw(canvases[i].canvas, l * (-speed + 1), t * (-speed + 1))
+        end
     end
 end
 

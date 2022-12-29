@@ -1,8 +1,13 @@
----@param args {text: string?, font: love.Font?}
----@return ECS.Component
+---@class ECS.TextComponent
+---@field content string
+---@field font love.Font
+
+
+---@param args {content: string?, font: love.Font?}
+---@return ECS.TextComponent
 return function(args)
-    return {
-        text = args.text or '',
-        font = args.font or love.graphics.getFont()
-    }
+    return love.lume.merge({
+        content = '',
+        font    = love.graphics.getFont()
+    }, args or {})
 end

@@ -245,7 +245,7 @@ function LLDebug.new()
 
     self.camera = Camera --[[@as FreeCamera]]
 
-    self.debug_menu:addCommand('Camera Reset', function()
+    self.debug_menu:addCommand('camera reset', function()
         self.camera:reset()
     end)
 

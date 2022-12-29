@@ -239,6 +239,7 @@ local function create_scene_executables(debugmenu, path, dir)
                 dir:add(Executable.new(
                     filename,
                     function()
+                        while debugmenu.roomy:pop() do end
                         debugmenu.roomy:enter(chunk())
                     end))
 

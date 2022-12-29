@@ -6,6 +6,8 @@
 -- This library is free software; you can redistribute it and/or modify it
 -- under the terms of the MIT license. See LICENSE for details.
 --
+---@class flux
+---@field easing flux.Easing
 local flux = { _version = '0.1.5' }
 flux.__index = flux
 
@@ -48,6 +50,36 @@ local EaseType = {
 --------------------------------------------------------------
 -- create easing functions
 --------------------------------------------------------------
+
+---@class flux.Easing
+---@field linear       fun(p: number): number
+---@field quadin       fun(p: number): number
+---@field quadout      fun(p: number): number
+---@field quadinout    fun(p: number): number
+---@field cubicin      fun(p: number): number
+---@field cubicout     fun(p: number): number
+---@field cubicinout   fun(p: number): number
+---@field quartin      fun(p: number): number
+---@field quartout     fun(p: number): number
+---@field quartinout   fun(p: number): number
+---@field quintin      fun(p: number): number
+---@field quintout     fun(p: number): number
+---@field quintinout   fun(p: number): number
+---@field expoin       fun(p: number): number
+---@field expoout      fun(p: number): number
+---@field expoinout    fun(p: number): number
+---@field sinein       fun(p: number): number
+---@field sineout      fun(p: number): number
+---@field sineinout    fun(p: number): number
+---@field circin       fun(p: number): number
+---@field circout      fun(p: number): number
+---@field circinout    fun(p: number): number
+---@field backin       fun(p: number): number
+---@field backout      fun(p: number): number
+---@field backinout    fun(p: number): number
+---@field elasticin    fun(p: number): number
+---@field elasticout   fun(p: number): number
+---@field elasticinout fun(p: number): number
 flux.easing = { linear = function(p) return p end }
 
 local easing = {
@@ -248,6 +280,7 @@ end
 ---@param obj any
 ---@param vars any
 function flux:clear(obj, vars)
+    ---@diagnostic disable-next-line: param-type-mismatch
     for t in pairs(self[obj]) do
         if t.inited then for k in pairs(vars) do t.vars[k] = nil end end
     end
@@ -273,6 +306,7 @@ end
 function flux:remove(x)
     if type(x) == 'number' then
         -- Remove from object table, destroy table if it is empty
+        ---@diagnostic disable-next-line: undefined-field
         local obj = self[x].obj
         self[obj][self[x]] = nil
         if not next(self[obj]) then self[obj] = nil end

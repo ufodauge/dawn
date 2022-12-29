@@ -36,10 +36,11 @@ function Controller:getConfig()
 end
 
 
----@param key_type? "keyboard"|"joystick"
----@return table
-function Controller:getControlConfig(key_type)
-    local control_conf = love.lume.deepclone(self.config.controls)
+---@param key_type "keyboard"|"joystick"
+---@param act_type string
+---@return string
+function Controller:getControlConfig(key_type, act_type)
+    local control_conf = self.config.controls
 
     local pattern = nil
     if key_type == 'keyboard' then
@@ -50,16 +51,14 @@ function Controller:getControlConfig(key_type)
         error('unreachable')
     end
 
-    for key, tbl in pairs(control_conf) do
-        for _, str in ipairs(tbl) do
-            local nstr, cnt = str:gsub(pattern, '%1')
-            if cnt > 0 then
-                control_conf[key] = nstr
-            end
+    for _, str in ipairs(control_conf[act_type]) do
+        local nstr, cnt = str:gsub(pattern, '%1')
+        if cnt > 0 then
+            return nstr
         end
     end
 
-    return control_conf
+    error('unreachable')
 end
 
 

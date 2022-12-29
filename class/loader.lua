@@ -18,6 +18,7 @@ function Loader:entities(data)
         local comp_data = love.lume.deepclone(data[i])
         local entity_name = comp_data._name
         entities[i] = require('ecs.entities.' .. entity_name)(comp_data)
+        entities[i]._name = entity_name
     end
 
     return entities
