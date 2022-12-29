@@ -49,16 +49,18 @@ System.filter = ECS.requireAll('player', 'player_ui')
 function System:onAdd(e)
     e.player.controllable = false
     e.color.a = 0
+
+    self._goaled = function(time)
+        e.player.controllable = false
+    end
+    Signal.subscribe(EVENT_NAME_GOALED, self._goaled)
+    
     coil.add(function()
         coil.wait(2)
         e.player.controllable = true
         flux.to(e.color, 1, {
             a = 1
         })
-        self._goaled = function(time)
-            e.player.controllable = false
-        end
-        Signal.subscribe(EVENT_NAME_GOALED, self._goaled)
     end)
 
     e.blob:setCategory(CATEGORY.PLAYER)

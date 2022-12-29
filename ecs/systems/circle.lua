@@ -21,12 +21,13 @@ local CANVAS_NAME_MAIN = require('const.canvas_name').MAIN
 --------------------------------------------------------------
 local System = ECS.processingSystem()
 
-System.filter = ECS.requireAll(
-    'transform',
-    'color',
-    'circle',
-    ECS.rejectAny('blob',
-        ECS.rejectAll('light', 'goal')))
+-- System.filter = ECS.requireAll(
+--     'transform',
+--     'color',
+--     'circle',
+--     ECS.rejectAny('blob',
+--         ECS.rejectAll('light', 'goal')))
+System.filter = ECS.filter('transform&color&circle&!(blob|!(light&goal)|!(light&door))')
 
 function System:preProcess(dt)
     if util.nullCheck(canvas) then

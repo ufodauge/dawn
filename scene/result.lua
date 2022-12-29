@@ -11,15 +11,17 @@ local floor   = math.floor
 --------------------------------------------------------------
 -- requires
 --------------------------------------------------------------
-local Controller = require('class.controller'):getInstance()
-local Text       = require('class.ui.text')
-local Canvas     = require('class.canvas')
-local Loader     = require('class.loader')
-local Signal     = require('lib.signal')
-local Roomy      = require('lib.roomy'):getInstance()
-local coil       = require('lib.coil')
-local Bitser     = require('lib.bitser')
-local util       = require('lib.util')
+local Controller       = require('class.controller'):getInstance()
+local Text             = require('class.ui.text')
+local Canvas           = require('class.canvas')
+local Loader           = require('class.loader')
+local BlackScreen      = require('class.black_screen')
+local Signal           = require('lib.signal')
+local Roomy            = require('lib.roomy'):getInstance()
+local coil             = require('lib.coil')
+local Bitser           = require('lib.bitser')
+local util             = require('lib.util')
+local StageSelectScene = require('scene.stage_select')
 
 
 -- const
@@ -87,8 +89,8 @@ local ResultScene = {}
 local font_large  = fonts.timeburnerbold(128)
 local font_normal = fonts.timeburnerbold(30)
 
-
 local texts = nil
+local black_screen = nil
 
 
 local convert_time_to_mmssms = function(time)
@@ -180,6 +182,23 @@ function ResultScene:enter(GameScene, time)
         texts[5]:move(310, 0, 1.4)
         texts[6]:move(330, 0, 1.6)
     end)
+
+
+    black_screen = BlackScreen.new()
+    coil.add(function()
+        coil.wait(2.6)
+        while true do
+            if Controller:pressed('action') then
+                break
+            end
+            coil.wait(love.timer.getDelta())
+        end
+
+        black_screen:toggle()
+        coil.wait(1)
+        Roomy:pop()
+        Roomy:enter(StageSelectScene)
+    end)
 end
 
 
@@ -190,10 +209,10 @@ end
 
 function ResultScene:draw()
     game_scene:draw()
-    lg.setBackgroundColor(1, 1, 1, 1)
-    for _, text in ipairs(texts) do
-        text:draw()
+    for i = 1, #texts do
+        texts[i]:draw()
     end
+    black_screen:draw()
 end
 
 

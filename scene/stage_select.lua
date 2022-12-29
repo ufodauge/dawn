@@ -9,8 +9,9 @@ local Canvas       = require('class.canvas')
 local Loader       = require('class.loader')
 local PhysicsWorld = require('class.world_physics')
 local LightWorld   = require('class.world_light')
-local Camera       = require('class.camera'):getInstance()
-local Roomy        = require('lib.roomy'):getInstance()
+local BlackScreen  = require('class.black_screen')
+-- local Camera       = require('class.camera'):getInstance()
+-- local Roomy        = require('lib.roomy'):getInstance()
 
 
 -- data
@@ -26,12 +27,10 @@ local CANVAS_NAME_HUD            = require('const.canvas_name').HUD
 local WORLD_GRAVITY_X            = require('const.physics').WORLD_GRAVITY_X
 local WORLD_GRAVITY_Y            = require('const.physics').WORLD_GRAVITY_Y
 local EVENT_NAME                 = require('const.event_name')
-local BlackScreen                = require('class.black_screen')
 
----@class GameScene : Scene
-local GameScene = {}
 
-GameScene.current_level = 1
+---@class StageSelectScene : Scene
+local StageSelectScene = {}
 
 
 -- local
@@ -44,7 +43,7 @@ local world_light   = nil
 local black_screen  = nil
 
 
-function GameScene:enter(prev, level)
+function StageSelectScene:enter(prev)
     Canvas:register(CANVAS_NAME_MAIN, 1, 1.0)
     Canvas:register(CANVAS_NAME_COLLISION_VIEW, 50, 1.0)
     Canvas:register(CANVAS_NAME_HUD, 100, 0)
@@ -60,11 +59,9 @@ function GameScene:enter(prev, level)
         ambient = { 0.8, 0.8, 0.8 },
         shadowBlur = 10
     })
-    world_light.post_shader:addEffect('tilt_shift')
+    world_light.post_shader:addEffect('scanlines')
 
-
-    self.current_level = level or self.current_level
-    level_data = require(('data.level.%d'):format(self.current_level))
+    level_data = require(('data.level.world'))
 
     local systems  = Loader:systems(level_data.systems)
     local entities = Loader:entities(level_data.entities)
@@ -77,21 +74,18 @@ function GameScene:enter(prev, level)
     end
 
     love.debug:addFlag('collision view', false)
-    love.debug.debug_menu:addCommand('goal', function()
-        Signal.emit(EVENT_NAME.GOALED)
-    end)
 
     black_screen = BlackScreen.new(true)
     black_screen:toggle()
 
-    self._goaled = function()
-        world_light.post_shader:addEffect('blur', 10.0, 10.0)
+    self._enter_stage = function(level)
+        black_screen:toggle()
     end
-    Signal.subscribe(EVENT_NAME.GOALED, self._goaled)
+    Signal.subscribe(EVENT_NAME.ENTER_TO_LEVEL, self._enter_stage)
 end
 
 
-function GameScene:update(dt)
+function StageSelectScene:update(dt)
     Canvas:clear()
 
     world_physics:update(dt)
@@ -100,7 +94,7 @@ function GameScene:update(dt)
 end
 
 
-function GameScene:draw()
+function StageSelectScene:draw()
     world_light:draw(function()
         Canvas:draw(0, 0, 0, 0, {
             exclude = {
@@ -112,7 +106,6 @@ function GameScene:draw()
     Canvas:draw(0, 0, 0, 0, {
         exclude = { CANVAS_NAME_MAIN }
     })
-    black_screen:draw()
     -- Camera:draw(function(l, t, w, h)
     --     world_light:draw(function()
     --         Canvas:draw(l, t, w, h, {
@@ -126,10 +119,12 @@ function GameScene:draw()
     --         exclude = { CANVAS_NAME_MAIN }
     --     })
     -- end)
+
+    black_screen:draw()
 end
 
 
-function GameScene:leave(_, ...)
+function StageSelectScene:leave(_, ...)
     world_ecs:clearEntities()
     world_ecs:clearSystems()
 
@@ -139,11 +134,10 @@ function GameScene:leave(_, ...)
 
     love.debug.debug_menu:removeCommand('goal')
 
-    Signal.subscribe(EVENT_NAME.SEND_GOAL_TIME, self._goaled)
+    Signal.subscribe(EVENT_NAME.ENTER_TO_LEVEL, self._enter_stage)
 
-    world_light.post_shader:removeEffect('tilt_shift')
-    world_light.post_shader:removeEffect('blur')
+    world_light.post_shader:removeEffect('scanlines')
 end
 
 
-return GameScene
+return StageSelectScene

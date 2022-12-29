@@ -35,6 +35,7 @@ System.filter = ECS.requireAll('goal')
 ---@param e {physics: ECS.PhysicsComponent, animation: ECS.AnimationComponent}
 function System:onAdd(e)
     e.physics.fixture:setCategory(CATEGORY.GOAL)
+    e.physics.fixture:setSensor(true)
 
     -- modify animation timer to randomize
     --------------------------------------------------------------

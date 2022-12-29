@@ -7,9 +7,10 @@ local world = nil
 
 ---@return love.World
 function physics:get()
-    world = util.nullCheck(world)
-        and lp.newWorld()
-        or world
+    if util.nullCheck(world) then
+        world = nil
+        world = lp.newWorld()
+    end
 
     return world
 end
