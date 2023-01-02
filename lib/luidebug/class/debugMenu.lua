@@ -11,9 +11,9 @@ local DEBUG_MENU_DIR_NAME_COMMANDS  = 'commands'
 -- Import
 --------------------------------------------------------------
 local PATH         = (...):gsub('[^/.\\]+$', '')
-local EntryManager = require(PATH .. 'entrymanager')
-local Directory    = require(PATH .. 'entrymanager.directory')
-local Executable   = require(PATH .. 'entrymanager.executable') --[[@as Executable]]
+local EntryManager = require(PATH .. 'entryManager')
+local Directory    = require(PATH .. 'entryManager.directory')
+local Executable   = require(PATH .. 'entryManager.executable') --[[@as Executable]]
 local KeyManager   = require(PATH .. 'keyManager')
 
 

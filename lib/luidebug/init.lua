@@ -31,7 +31,7 @@ local font_debug = utils.imageFontLoader(SYSPATH .. 'res/font')
 local Director    = require(PATH .. 'class.director')
 local DebugMenu   = require(PATH .. 'class.debugMenu')
 local MessageArea = require(PATH .. 'class.messageArea')
-local Camera      = require(PATH .. 'class.Camera')
+local Camera      = require(PATH .. 'class.camera')
 
 
 --------------------------------------------------------------
