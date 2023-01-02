@@ -16,6 +16,7 @@ return {
     'light',
     'animation',
     'timer',
+    'bubble',
   },
   entities = {
     {
@@ -53,7 +54,7 @@ return {
       transform = { x = 1000, y = 500 },
       circle = { r = 10 },
       light = { r = 50 },
-      color = { hex2tbl(color_palette.indigo['300']) },
+      color = { hex2tbl(color_palette.indigo['400']) },
     },
     {
       _name = 'light',

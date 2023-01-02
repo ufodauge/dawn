@@ -150,6 +150,8 @@ function ResultScene:enter(GameScene, time)
     level_records = love.lume.sort(level_records)
     level_records[RECORDS_MAX + 1] = nil
 
+    records[game_scene.current_level] = level_records
+
     Bitser.dumpLoveFile(FILENAME_SAVEDATA, records)
 
     texts[1]:setEmbedGetter(function()

@@ -4,7 +4,7 @@ function Loader:systems(data)
     local systems = {}
 
     for i = 1, #data do
-        systems[i] = require('ecs.systems.' .. data[i])
+        systems[i] = require('nocs.systems.' .. data[i])
     end
 
     return systems
@@ -17,7 +17,7 @@ function Loader:entities(data)
     for i = 1, #data do
         local comp_data = love.lume.deepclone(data[i])
         local entity_name = comp_data._name
-        entities[i] = require('ecs.entities.' .. entity_name)(comp_data)
+        entities[i] = require('nocs.entities.' .. entity_name)(comp_data)
         entities[i]._name = entity_name
     end
 

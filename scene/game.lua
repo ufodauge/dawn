@@ -1,16 +1,18 @@
 --[[
-TODO メインスレッドを止めない方法を模索しましょう
+TODO メインスレッド止めたくない
 ]]
 -- requires
 --------------------------------------------------------------
-local ECS          = require('lib.tiny-ecs')
-local Signal       = require('lib.signal')
-local Canvas       = require('class.canvas')
-local Loader       = require('class.loader')
-local PhysicsWorld = require('class.world_physics')
-local LightWorld   = require('class.world_light')
-local Camera       = require('class.camera'):getInstance()
-local Roomy        = require('lib.roomy'):getInstance()
+local ECS           = require('lib.tiny-ecs')
+local Signal        = require('lib.signal')
+local Canvas        = require('class.canvas')
+local Loader        = require('class.loader')
+local PhysicsWorld  = require('class.world_physics')
+local LightWorld    = require('class.world_light')
+local BubbleFactory = require('class.bubble_factory')
+local ECSWorld      = require('class.world_ecs')
+-- local Camera       = require('class.camera'):getInstance()
+-- local Roomy        = require('lib.roomy'):getInstance()
 
 
 -- data
@@ -37,11 +39,12 @@ GameScene.current_level = 1
 -- local
 --------------------------------------------------------------
 ---@type ECS.World
-local world_ecs     = nil
+local world_ecs      = nil
 ---@type love.World
-local world_physics = nil
-local world_light   = nil
-local black_screen  = nil
+local world_physics  = nil
+local world_light    = nil
+local black_screen   = nil
+local bubble_factory = nil
 
 
 function GameScene:enter(prev, level)
@@ -52,7 +55,7 @@ function GameScene:enter(prev, level)
     world_physics = PhysicsWorld:get()
     world_physics:setGravity(WORLD_GRAVITY_X, WORLD_GRAVITY_Y)
 
-    world_ecs = ECS.world()
+    world_ecs = ECSWorld:get()
 
     -- light world
     --------------------------------------------------------------
@@ -88,11 +91,17 @@ function GameScene:enter(prev, level)
         world_light.post_shader:addEffect('blur', 10.0, 10.0)
     end
     Signal.subscribe(EVENT_NAME.GOALED, self._goaled)
+
+    love.assets.sound.paper:play()
+
+    bubble_factory = BubbleFactory.new(world_ecs)
 end
 
 
 function GameScene:update(dt)
     Canvas:clear()
+
+    bubble_factory:update(dt)
 
     world_physics:update(dt)
     world_ecs:update(dt)

@@ -1,5 +1,4 @@
-love.lurker = require('lib.lurker')
-
+local lurker = require('lib.lurker')
 love.debug = require('lib.luidebug'):getInstance()
 --------------------------------------------------------------
 -- Debug
@@ -103,6 +102,7 @@ function love.update(dt)
 end
 
 
+---@diagnostic disable-next-line: duplicate-set-field
 function love.draw()
     love.debug.camera:set()
     Roomy:emit('draw')
@@ -114,6 +114,6 @@ end
 
 function love.focus(f)
     if f then
-        love.lurker.scan()
+        lurker.scan()
     end
 end
