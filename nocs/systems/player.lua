@@ -35,10 +35,9 @@ local SOC_F = 2.808
 local SOC_Z = 1.538
 local SOC_R = 1.423
 
-local world              = nil
-local canvas             = nil
-local CANVAS_NAME_MAIN   = require('const.canvas_name').MAIN
-local pop_sound_vol_rate = 0.1
+local world            = nil
+local canvas           = nil
+local CANVAS_NAME_MAIN = require('const.canvas_name').MAIN
 
 
 --------------------------------------------------------------
@@ -175,7 +174,6 @@ function System:process(e, dt)
         e.blob.kernel_body:applyLinearImpulse(
             e.player.pop_strength * math.cos(e.player.pop_angle) * e.player.pop_strength_rate,
             e.player.pop_strength * math.sin(e.player.pop_angle) * e.player.pop_strength_rate)
-        pop_sound_vol_rate = 0.1
     end
 
 
@@ -190,6 +188,7 @@ function System:process(e, dt)
     ---@type love.Contact[]
     local contacts = world:getContacts()
 
+    local contact_frag = false
     for _, contact in ipairs(contacts) do
         local fix_a, fix_b = contact:getFixtures()
         local cat_a = fix_a:getCategory()
@@ -198,13 +197,22 @@ function System:process(e, dt)
         if cat_a == CATEGORY.PLAYER and cat_b == CATEGORY.DEFAULT or
             cat_b == CATEGORY.PLAYER and cat_a == CATEGORY.DEFAULT then
 
-            love.assets.sound['pop-up']:setVolume(pop_sound_vol_rate)
-            love.assets.sound['pop-up']:seek(0)
-            love.assets.sound['pop-up']:play()
-            pop_sound_vol_rate = pop_sound_vol_rate * 0.95
+            contact_frag = true
+
 
             break
         end
+    end
+
+    if contact_frag then
+        e.player.contact_frame = e.player.contact_frame + 1
+    else
+        e.player.contact_frame = 0
+    end
+
+    if e.player.contact_frame == 1 then
+        love.assets.sound['pop']:seek(1)
+        love.assets.sound['pop']:play()
     end
 end
 
